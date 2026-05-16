@@ -22,7 +22,9 @@ export const validatePassword = (password) => {
 export const validateSignupForm = (data) => {
   const errors = {}
   if (!data.shopName?.trim()) errors.shopName = 'Shop name is required'
-  if (!validateGSTIN(data.gstin)) errors.gstin = 'Invalid GSTIN format (e.g. 27ABCDE1234F1Z5)'
+  if (data.gstin && data.gstin.trim() !== '') {
+    if (!validateGSTIN(data.gstin)) errors.gstin = 'Invalid GSTIN format (e.g. 27ABCDE1234F1Z5)'
+  }
   if (!validatePhone(data.mobile)) errors.mobile = 'Enter a valid 10-digit mobile number'
   if (!validateEmail(data.email)) errors.email = 'Enter a valid email address'
   if (!validatePassword(data.password)) errors.password = 'Password must be at least 6 characters'

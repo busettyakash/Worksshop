@@ -1,103 +1,186 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock } from 'lucide-react'
-import { useAppDispatch } from '../../redux/hooks'
-import { loginThunk } from '../../redux/slices/authSlice'
-import { useAuth } from '../../hooks/useAuth'
+import WorkshopLogo from '../../components/WorkshopLogo'
+import Notification from '../../components/Notification'
 import AuthLayout from '../../components/layout/AuthLayout'
 import Input from '../../components/ui/Input'
+import { authApi } from '../../services/authApi'
 import './Auth.css'
 
 export default function Login() {
-  const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { isLoading, error } = useAuth()
-
-  const [step, setStep] = useState('email')
+  const [step, setStep] = useState('email') // 'email' | 'checking' | 'otp' | 'password'
   const [email, setEmail] = useState('')
-  const [password, setPw] = useState('')
-  const [localError, setLocalError] = useState('')
+  const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleEmailContinue = (e) => {
+  const handleEmailContinue = async (e) => {
     e.preventDefault()
     if (!email) return
     setStep('checking')
-    setTimeout(() => setStep('password'), 900)
+    try {
+      await authApi.sendOtp(email)
+      setStep('otp')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send OTP')
+      setStep('email')
+    }
+  }
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      await authApi.verifyOtp(email, otp)
+      setStep('password')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid OTP')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    setLocalError('')
-    const result = await dispatch(loginThunk({ email, password }))
-    if (loginThunk.fulfilled.match(result)) {
+    setLoading(true)
+    setError('')
+
+    try {
+      const data = await authApi.login({ email, password })
+      localStorage.setItem('ws_token', data.token)
+      // Store user with success message for dashboard
+      localStorage.setItem('ws_user', JSON.stringify({
+        shopName: data.user.shopName,
+        email: data.user.email,
+        successMessage: 'Welcome back! Login successful.'
+      }))
       navigate('/dashboard')
-    } else {
-      setLocalError(result.payload || 'Invalid credentials')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid password.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const displayError = localError || error
-
   return (
     <AuthLayout>
+      {error && <Notification message={error} type="error" onClose={() => setError('')} />}
+      
       <div className="ws-auth-form-wrap">
-        {step === 'password' ? (
+        {step === 'otp' ? (
           <>
-            <h2 className="ws-auth-step-title">Check your inbox!</h2>
-            <p className="ws-auth-step-subtitle">
-              We've just emailed you a temporary password.<br />
-              Please enter it below.
-            </p>
-            <form className="ws-auth-form" onSubmit={handleLogin} noValidate>
-              <div className="ws-auth-email-display">
-                <Mail size={13} color="var(--color-text-tertiary)" />
-                {email}
+            <h1 className="ws-auth-step-title">Verify your email</h1>
+            <p className="ws-auth-step-subtitle">We've sent a 6-digit code to <strong>{email}</strong>.</p>
+
+            <form className="ws-auth-form" onSubmit={handleVerifyOtp}>
+              <div className="ws-auth-input-group">
+                <div className="ws-auth-input-wrap">
+                  <input
+                    className="ws-auth-input"
+                    placeholder="6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    autoFocus
+                    required
+                    maxLength={6}
+                  />
+                </div>
               </div>
-              <Input
-                type="password"
-                placeholder="Enter temporary password..."
-                value={password}
-                onChange={(e) => setPw(e.target.value)}
-                icon={Lock}
-                error={displayError}
-                autoFocus
-                required
-              />
-              <button type="submit" className="ws-auth-submit-btn" disabled={isLoading}>
-                {isLoading ? 'Signing in…' : 'Continue'}
+
+              <button type="submit" className="ws-auth-btn-submit" disabled={loading}>
+                {loading ? 'Verifying...' : 'Verify OTP'}
+              </button>
+
+              <div className="ws-auth-resend-wrap" style={{ textAlign: 'center', marginTop: '16px' }}>
+                <p className="ws-auth-switch" style={{ margin: 0 }}>
+                  Didn't receive it?{' '}
+                  <button 
+                    type="button" 
+                    className="ws-text-btn" 
+                    onClick={handleEmailContinue}
+                    disabled={loading}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      color: 'var(--color-blue)', 
+                      fontWeight: 600, 
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                  >
+                    Resend OTP
+                  </button>
+                </p>
+              </div>
+            </form>
+          </>
+        ) : step === 'password' ? (
+          <>
+            <h1 className="ws-auth-step-title">Welcome back!</h1>
+            <p className="ws-auth-step-subtitle">Enter your password to sign in.</p>
+
+            <form className="ws-auth-form" onSubmit={handleLogin}>
+              <div className="ws-auth-input-group">
+                <div className="ws-auth-input-wrap">
+                  <Lock size={14} className="ws-auth-icon" />
+                  <input
+                    type="password"
+                    className="ws-auth-input"
+                    placeholder="Enter your password..."
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="ws-auth-btn-submit" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign in'}
               </button>
             </form>
           </>
         ) : (
           <>
-            <form className="ws-auth-form" onSubmit={handleEmailContinue} noValidate>
-              <Input
-                type="email"
-                placeholder="Enter your work email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                icon={Mail}
-                required
-              />
+            <h1 className="ws-auth-step-title">Log in to Workshop</h1>
+            <form className="ws-auth-form" onSubmit={handleEmailContinue}>
+              <div className="ws-auth-input-group">
+                <div className="ws-auth-input-wrap">
+                  <Mail size={14} className="ws-auth-icon" />
+                  <input
+                    type="email"
+                    className="ws-auth-input"
+                    placeholder="Enter your work email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
               <button
                 type="submit"
-                className={`ws-auth-submit-btn ${step === 'checking' ? 'loading' : ''}`}
+                className={`ws-auth-btn-submit${step === 'checking' ? ' loading' : ''}`}
                 disabled={step === 'checking'}
               >
-                {step === 'checking' ? 'Checking email…' : 'Continue'}
+                {step === 'checking' ? 'Checking email...' : 'Continue'}
               </button>
             </form>
+
             <div className="ws-auth-switch">
-              Don't have an account?{' '}
-              <Link to="/signup">Sign up</Link>
+              Don't have an account? <Link to="/signup">Sign up</Link>
             </div>
           </>
         )}
 
-        <p className="ws-auth-legal">
-          By inserting your email you confirm you agree to Workshop contacting you about
-          our product and services. You can opt out at any time by clicking unsubscribe.
-          Find out more about how we use data in our <a href="#">privacy policy</a>.
+        <p className="ws-auth-legal" style={{marginTop: 'auto', paddingTop: 40}}>
+          By inserting your email you confirm you agree to Workshop contacting you about our
+          product and services. You can opt out at any time. Find out more in our{' '}
+          <a href="#">privacy policy</a>.
         </p>
       </div>
     </AuthLayout>

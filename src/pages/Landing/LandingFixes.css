@@ -1,0 +1,617 @@
+/* ═══════════════════════════════════════
+   LANDING PAGE FIXES — Overrides & Enhancements
+   ═══════════════════════════════════════ */
+
+/* ── 1. Navbar Mobile Responsiveness ── */
+.ws-nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.ws-nav-hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--color-black);
+  transition: 0.2s;
+}
+
+.ws-nav-mobile-menu {
+  display: none;
+  position: absolute;
+  top: 58px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 24px 24px;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.ws-nav-mobile-link {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.ws-nav-mobile-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 4px 0;
+}
+
+.ws-nav-mobile-cta {
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .ws-nav-links, .ws-nav-cta { display: none !important; }
+  .ws-nav-hamburger { display: flex; }
+  .ws-nav-mobile-menu { display: flex; }
+}
+
+/* ── 2. Unified Platform Headline ── */
+.ws-platform-section {
+  padding: 80px 24px;
+  background: #fff;
+}
+.ws-platform-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.ws-platform-headline {
+  margin-bottom: 60px;
+  max-width: 850px;
+}
+.ws-platform-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0a0a0a;
+}
+.ws-platform-title-muted {
+  color: #666;
+  font-weight: 500;
+}
+
+/* ── 3. Feature Blocks (3-Column Layout) ── */
+.ws-feat-block {
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 80px;
+}
+@media (max-width: 900px) {
+  .ws-feat-block {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+.ws-feat-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.ws-feat-heading {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.ws-feat-desc {
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.ws-feat-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111;
+  text-decoration: none;
+}
+.ws-feat-link:hover { color: #2563eb; }
+
+.ws-feat-visual {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.ws-feat-side {
+  height: 480px;
+  position: relative;
+}
+@media (max-width: 900px) {
+  .ws-feat-visual, .ws-feat-side {
+    height: auto;
+    min-height: 300px;
+  }
+}
+
+/* ── 4. AskWorkshop (AI) Flow ── */
+.ws-ai-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+}
+
+.ws-ai-trigger-row {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  z-index: 2;
+}
+
+.ws-ai-connector {
+  width: 2px;
+  height: 24px;
+  background: #e5e7eb;
+}
+
+.ws-ai-flow-card {
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  z-index: 2;
+}
+
+.ws-ai-flow-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ws-ai-flow-icon {
+  width: 24px;
+  height: 24px;
+  background: #e0e7ff;
+  color: #4f46e5;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ws-ai-flow-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.ws-ai-badge {
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.ws-ai-flow-question {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.ws-ai-flow-answer {
+  background: #f9fafb;
+  border-radius: 20px;
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #4b5563;
+  border: 1px solid #f3f4f6;
+}
+
+.ws-ai-sparkle { color: #8b5cf6; }
+.ws-ai-highlight { color: #7c3aed; font-weight: 600; }
+
+
+/* ── 5. Store Profile Card ── */
+.ws-store-profile {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  transform: translateY(-50%);
+}
+@media (max-width: 900px) {
+  .ws-store-profile {
+    position: relative;
+    top: 0;
+    transform: none;
+  }
+}
+
+.ws-store-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ws-store-avatar {
+  width: 40px;
+  height: 40px;
+  background: #111;
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ws-store-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.ws-store-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.ws-store-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ws-store-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.ws-store-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+}
+
+.ws-store-val { font-weight: 500; color: #111; text-align: right; }
+.ws-store-muted { color: #6b7280; }
+
+.ws-store-pill-blue {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.ws-store-pill-green {
+  background: #dcfce7;
+  color: #166534;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.ws-store-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.ws-store-pill-purple {
+  background: #f3e8ff;
+  color: #7e22ce;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* ── 6. Automate Flow Diagram ── */
+.ws-flow-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 30px;
+}
+
+.ws-flow-node {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  width: 100%;
+  max-width: 240px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.ws-flow-node--active { border-color: #10b981; }
+.ws-flow-node--faded { opacity: 0.5; border-color: #d1d5db; }
+
+.ws-flow-node-tag {
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  background: #fff;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ws-flow-node-status {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: #fff;
+  padding: 0 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.ws-flow-node-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ws-flow-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ws-flow-icon--blue { background: #eff6ff; color: #3b82f6; }
+.ws-flow-icon--gray { background: #f3f4f6; color: #9ca3af; }
+
+.ws-flow-node-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #111;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ws-flow-badge {
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+}
+
+.ws-flow-node-sub {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.ws-flow-connector {
+  width: 2px;
+  height: 30px;
+  background: #10b981;
+}
+
+.ws-flow-branches {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 260px;
+  margin: 15px 0;
+  position: relative;
+}
+.ws-flow-branches::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  width: 2px;
+  height: 15px;
+  background: #10b981;
+  transform: translateX(-50%);
+}
+.ws-flow-branches::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: #10b981;
+}
+/* Right half of branch line is gray */
+.ws-flow-branches .ws-flow-branch-label:nth-child(2)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -200%;
+  right: 0;
+  height: 2px;
+  background: #d1d5db;
+  z-index: 1;
+}
+
+.ws-flow-branch-label {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #6b7280;
+  z-index: 2;
+  position: relative;
+}
+.ws-flow-branch-label--active {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.ws-flow-split {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 440px;
+  gap: 20px;
+}
+
+.ws-flow-split-node {
+  max-width: 200px;
+  position: relative;
+}
+.ws-flow-split-node::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  width: 2px;
+  height: 15px;
+  background: #10b981;
+  transform: translateX(-50%);
+}
+.ws-flow-split-node.ws-flow-node--faded::before {
+  background: #d1d5db;
+}
+
+.ws-flow-add-btns {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 20px;
+}
+.ws-flow-add {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ws-flow-add--active {
+  background: #eff6ff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #dbeafe;
+  color: #3b82f6;
+}
+
+/* ── 7. Scrolling Pills ── */
+.ws-pill-scroll-wrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  padding-top: 40px;
+}
+
+.ws-pill-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: scrollUp 15s linear infinite;
+}
+
+@keyframes scrollUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.ws-scroll-pill {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  width: max-content;
+  max-width: 100%;
+}
+
+.ws-scroll-pill-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

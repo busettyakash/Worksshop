@@ -8,8 +8,8 @@ export const loginThunk = createAsyncThunk(
     try {
       const data = await authApi.login({ email, password })
       localStorage.setItem('ws_token', data.token)
-      localStorage.setItem('ws_user', JSON.stringify({ shopName: data.shopName, email: data.email }))
-      return data
+      localStorage.setItem('ws_user', JSON.stringify({ shopName: data.user.shopName, email: data.user.email }))
+      return { ...data, successMessage: 'Welcome back! Login successful.' }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Invalid email or password.')
     }
@@ -22,8 +22,8 @@ export const registerThunk = createAsyncThunk(
     try {
       const data = await authApi.register(formData)
       localStorage.setItem('ws_token', data.token)
-      localStorage.setItem('ws_user', JSON.stringify({ shopName: data.shopName, email: data.email }))
-      return data
+      localStorage.setItem('ws_user', JSON.stringify({ shopName: data.user.shopName, email: data.user.email }))
+      return { ...data, successMessage: 'Workspace created successfully! Welcome.' }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Registration failed. Please try again.')
     }
@@ -72,7 +72,7 @@ const authSlice = createSlice({
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.status = 'succeeded'
-        state.user   = { shopName: action.payload.shopName, email: action.payload.email }
+        state.user   = { shopName: action.payload.user.shopName, email: action.payload.user.email }
         state.token  = action.payload.token
       })
       .addCase(loginThunk.rejected, (state, action) => {
@@ -88,7 +88,7 @@ const authSlice = createSlice({
       })
       .addCase(registerThunk.fulfilled, (state, action) => {
         state.status = 'succeeded'
-        state.user   = { shopName: action.payload.shopName, email: action.payload.email }
+        state.user   = { shopName: action.payload.user.shopName, email: action.payload.user.email }
         state.token  = action.payload.token
       })
       .addCase(registerThunk.rejected, (state, action) => {

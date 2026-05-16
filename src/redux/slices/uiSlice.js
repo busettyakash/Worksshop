@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   sidebarOpen:   true,
+  chatOpen:      true,
   activeNav:     'Home',
   notifications: [],
   toasts:        [],
@@ -16,6 +17,12 @@ const uiSlice = createSlice({
     },
     setSidebarOpen(state, action) {
       state.sidebarOpen = action.payload
+    },
+    toggleChat(state) {
+      state.chatOpen = !state.chatOpen
+    },
+    setChatOpen(state, action) {
+      state.chatOpen = action.payload
     },
     setActiveNav(state, action) {
       state.activeNav = action.payload
@@ -33,9 +40,10 @@ const uiSlice = createSlice({
   },
 })
 
-export const { toggleSidebar, setSidebarOpen, setActiveNav, addToast, removeToast } = uiSlice.actions
+export const { toggleSidebar, setSidebarOpen, toggleChat, setChatOpen, setActiveNav, addToast, removeToast } = uiSlice.actions
 export default uiSlice.reducer
 
 export const selectSidebarOpen = (state) => state.ui.sidebarOpen
+export const selectChatOpen    = (state) => state.ui.chatOpen
 export const selectActiveNav   = (state) => state.ui.activeNav
 export const selectToasts      = (state) => state.ui.toasts

@@ -40,7 +40,7 @@ export default function ProductsTable() {
             </tr>
           </thead>
           <tbody>
-            {products.map(row => {
+            {products.length > 0 ? products.map(row => {
               const colors = STATUS_COLORS[row.status] || {}
               return (
                 <tr key={row.id}>
@@ -58,7 +58,13 @@ export default function ProductsTable() {
                   <td className="ws-td-price">{row.price}</td>
                 </tr>
               )
-            })}
+            }) : (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
+                  No products found. Click "Add Product" to get started.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

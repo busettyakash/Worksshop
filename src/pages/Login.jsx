@@ -3,14 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock } from 'lucide-react'
 import WorkshopLogo from '../components/WorkshopLogo'
 import Notification from '../components/Notification'
-import apiClient from '../api/client'
+import { authApi } from '../services/authApi'
 import './Auth.css'
 
 export default function Login() {
   const navigate = useNavigate()
-  const [step, setStep] = useState('email') // 'email' | 'checking' | 'password'
+  const [step, setStep] = useState('email') // 'email' | 'checking' | 'otp' | 'password'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -18,7 +19,27 @@ export default function Login() {
     e.preventDefault()
     if (!email) return
     setStep('checking')
-    setTimeout(() => setStep('password'), 900)
+    try {
+      await authApi.sendOtp(email)
+      setStep('otp')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send OTP')
+      setStep('email')
+    }
+  }
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      await authApi.verifyOtp(email, otp)
+      setStep('password')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid OTP')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleLogin = async (e) => {
@@ -27,16 +48,17 @@ export default function Login() {
     setError('')
 
     try {
-      const response = await apiClient.post('/auth/login', { email, password })
-      localStorage.setItem('ws_token', response.data.token)
+      const data = await authApi.login({ email, password })
+      localStorage.setItem('ws_token', data.token)
+      // Store user with success message for dashboard
       localStorage.setItem('ws_user', JSON.stringify({
-        shopName: response.data.shopName,
-        email: response.data.email
+        shopName: data.user.shopName,
+        email: data.user.email,
+        successMessage: 'Welcome back! Login successful.'
       }))
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password.')
-      setStep('password')
+      setError(err.response?.data?.message || 'Invalid password.')
     } finally {
       setLoading(false)
     }
@@ -46,7 +68,6 @@ export default function Login() {
     <div className="ws-auth-layout">
       {error && <Notification message={error} type="error" onClose={() => setError('')} />}
       
-      {/* Topbar */}
       <div className="ws-auth-topbar">
         <Link to="/" className="ws-auth-brand">
           <WorkshopLogo size={26} className="ws-auth-logo" />
@@ -54,48 +75,63 @@ export default function Login() {
         </Link>
       </div>
 
-      {/* Card */}
-      <div className="ws-auth-container">
+      <div className="ws-auth-main">
         <div className="ws-auth-card">
-          {/* Left Form */}
           <div className="ws-auth-left">
-
-            {step === 'password' ? (
+            {step === 'otp' ? (
               <>
-                <h1 className="ws-auth-title">Check your inbox!</h1>
-                <p className="ws-auth-subtitle">We've just emailed you a temporary password.<br />Please enter it below.</p>
+                <h1 className="ws-auth-title">Verify your email</h1>
+                <p className="ws-auth-subtitle">We've sent a 6-digit code to <strong>{email}</strong>.</p>
 
-                <form className="ws-auth-form" onSubmit={handleLogin}>
-                  {/* Show email (non-editable) */}
-                  <div className="ws-auth-display-row">
-                    <Mail size={14} color="#9ca3af" />
-                    {email}
+                <form className="ws-auth-form" onSubmit={handleVerifyOtp}>
+                  <div className="ws-auth-input-group">
+                    <div className="ws-auth-input-wrap">
+                      <input
+                        className="ws-auth-input"
+                        placeholder="6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        autoFocus
+                        required
+                        maxLength={6}
+                      />
+                    </div>
                   </div>
 
+                  <button type="submit" className="ws-auth-btn-submit" disabled={loading}>
+                    {loading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+                </form>
+              </>
+            ) : step === 'password' ? (
+              <>
+                <h1 className="ws-auth-title">Welcome back!</h1>
+                <p className="ws-auth-subtitle">Enter your password to sign in.</p>
+
+                <form className="ws-auth-form" onSubmit={handleLogin}>
                   <div className="ws-auth-input-group">
                     <div className="ws-auth-input-wrap">
                       <Lock size={14} className="ws-auth-icon" />
                       <input
                         type="password"
                         className="ws-auth-input"
-                        placeholder="Enter temporary password..."
+                        placeholder="Enter your password..."
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         autoFocus
                         required
                       />
                     </div>
-                    {error && <div className="ws-auth-error-text">{error}</div>}
                   </div>
 
                   <button type="submit" className="ws-auth-btn-submit" disabled={loading}>
-                    {loading ? 'Signing in...' : 'Continue'}
+                    {loading ? 'Signing in...' : 'Sign in'}
                   </button>
                 </form>
               </>
             ) : (
               <>
-                {/* Google Sign In */}
+                <h1 className="ws-auth-title">Log in to Workshop</h1>
                 <button type="button" className="ws-auth-google-btn">
                   <svg className="ws-auth-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -137,20 +173,18 @@ export default function Login() {
                 </form>
 
                 <div className="ws-auth-switch" style={{marginTop: 16}}>
-                  Don't have an account? <Link to="/signup" style={{ color: 'var(--blue)', fontWeight: 600 }}>Sign up</Link>
+                  Don't have an account? <Link to="/signup">Sign up</Link>
                 </div>
               </>
             )}
 
             <p className="ws-auth-legal" style={{marginTop: 'auto', paddingTop: 40}}>
               By inserting your email you confirm you agree to Workshop contacting you about our
-              product and services. You can opt out at any time by clicking unsubscribe in our
-              emails. Find out more about how we use data in our{' '}
+              product and services. You can opt out at any time. Find out more in our{' '}
               <a href="#">privacy policy</a>.
             </p>
           </div>
 
-          {/* Right Content */}
           <div className="ws-auth-right">
             <h2 className="ws-auth-right-title">Welcome to Workshop.</h2>
             <p className="ws-auth-right-p">
@@ -168,7 +202,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="ws-auth-footer">
         © {new Date().getFullYear()} Workshop Limited
         <a href="#">Privacy Policy</a>

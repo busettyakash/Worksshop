@@ -1,90 +1,352 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Store, FileText, Phone, Mail, Lock } from 'lucide-react'
-import { useAppDispatch } from '../../redux/hooks'
-import { registerThunk } from '../../redux/slices/authSlice'
-import { useAuth } from '../../hooks/useAuth'
-import { validateSignupForm } from '../../utils/validators'
+import { Mail, Lock, ArrowLeft, Phone, FileText, Globe, MessageSquare } from 'lucide-react'
+import WorkshopLogo from '../../components/WorkshopLogo'
+import Notification from '../../components/Notification'
 import AuthLayout from '../../components/layout/AuthLayout'
 import Input from '../../components/ui/Input'
+import { authApi } from '../../services/authApi'
+import { useAppDispatch } from '../../redux/hooks'
+import { registerThunk } from '../../redux/slices/authSlice'
 import './Auth.css'
 
-export default function Signup() {
-  const dispatch = useAppDispatch()
-  const navigate = useNavigate()
-  const { isLoading } = useAuth()
+// Using global Input component
 
+export default function Signup() {
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const [step, setStep] = useState(1) // 1 to 5
   const [form, setForm] = useState({
-    shopName: '', gstin: '', mobile: '', email: '', password: '', confirmPassword: ''
+    email: '', password: '', confirmPassword: '',
+    companyName: '', workspaceHandle: '', workspaceHandleManual: false,
+    billingCountry: 'India', referralSource: '',
+    usageType: 'Sales', inviteEmail: '', otp: ''
   })
   const [errors, setErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState('')
+
+  useEffect(() => {
+    if (!form.workspaceHandleManual && form.companyName) {
+      const slug = form.companyName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+      setForm(prev => ({ ...prev, workspaceHandle: slug }))
+    }
+  }, [form.companyName, form.workspaceHandleManual])
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleHandleChange = (e) => {
+    setForm(prev => ({ ...prev, workspaceHandle: e.target.value, workspaceHandleManual: true }))
+  }
+
+  const handleNextStep = async (e) => {
     e.preventDefault()
     setApiError('')
-    const newErrors = validateSignupForm(form)
-    if (Object.keys(newErrors).length) { setErrors(newErrors); return }
-    const result = await dispatch(registerThunk(form))
-    if (registerThunk.fulfilled.match(result)) {
-      navigate('/dashboard')
-    } else {
-      setApiError(result.payload || 'Registration failed. Please try again.')
+    
+    if (step === 1) {
+      const newErrors = {}
+      if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) newErrors.email = 'Valid email is required.'
+      if (!form.password || form.password.length < 6) newErrors.password = 'Password must be at least 6 characters.'
+      if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match.'
+      
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors)
+        return
+      }
+      
+      setIsLoading(true)
+      try {
+        await authApi.sendOtp(form.email)
+        setStep(2)
+      } catch (err) {
+        setApiError('Failed to send OTP. Please try again.')
+      } finally {
+        setIsLoading(false)
+      }
+    } else if (step === 2) {
+      if (!form.otp || form.otp.length !== 6) {
+        setErrors(prev => ({ ...prev, otp: 'Please enter a 6-digit OTP' }))
+        return
+      }
+      setIsLoading(true)
+      try {
+        await authApi.verifyOtp(form.email, form.otp)
+        setStep(3)
+      } catch (err) {
+        setErrors(prev => ({ ...prev, otp: 'Invalid or expired OTP' }))
+      } finally {
+        setIsLoading(false)
+      }
+    } else if (step === 3) {
+      if (!form.companyName?.trim()) {
+        setErrors(prev => ({ ...prev, companyName: 'Company name is required' }))
+        return
+      }
+      setStep(4)
+    } else if (step === 4) {
+      setStep(5)
     }
   }
 
-  const rightPanel = (
-    <>
-      <h2 className="ws-auth-right-title">Welcome to Workshop.</h2>
-      <p className="ws-auth-right-body">
-        Workshop is a radically new type of retail platform. Built specifically for Indian
-        shops to manage billing, inventory, and customers effortlessly.
-      </p>
-      <p className="ws-auth-right-body" style={{ marginTop: 12 }}>
-        Every interaction within your store, always updated in real-time.
-      </p>
-      <p className="ws-auth-right-body" style={{ marginTop: 20, fontWeight: 500, color: 'var(--color-text-primary)' }}>
-        Let's begin.
-      </p>
-    </>
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault()
+    setIsLoading(true)
+    setApiError('')
+    
+    try {
+      const payload = {
+        ...form,
+        shopName: form.companyName // Map for backend compatibility
+      }
+      const resultAction = await dispatch(registerThunk(payload))
+      if (registerThunk.fulfilled.match(resultAction)) {
+        navigate('/dashboard')
+      } else {
+        setApiError(resultAction.payload || 'Registration failed')
+      }
+    } catch (err) {
+      setApiError('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const rightPanel = step === 1 ? null : (
+    <div className="ws-onboarding-preview">
+      <div className="ws-preview-window">
+        {step <= 4 ? (
+          <>
+            <div className="ws-preview-sidebar">
+              <div className="ws-preview-item ws-active">
+                <div className="ws-preview-avatar">
+                  {form.companyName ? form.companyName.charAt(0).toUpperCase() : 'W'}
+                </div>
+                <span className="ws-preview-text">{form.companyName || 'Workspace title'}</span>
+                <ArrowLeft size={12} style={{ transform: 'rotate(-90deg)', marginLeft: 'auto', opacity: 0.5 }} />
+              </div>
+              <div className="ws-preview-search">
+                <div className="ws-preview-search-icon" />
+              </div>
+              <div className="ws-preview-nav">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="ws-preview-nav-item" style={{ width: i === 1 ? '70%' : '50%', background: step === 4 && i === 1 ? 'var(--color-blue)' : '#eee' }} />
+                ))}
+              </div>
+            </div>
+            <div className="ws-preview-content">
+              <div className="ws-preview-header">
+                <div className="ws-preview-header-icon" />
+                <div className="ws-preview-header-text" />
+              </div>
+              <div className="ws-preview-grid">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="ws-preview-cell" style={{ 
+                    opacity: step === 4 ? 1 : 0.5,
+                    border: step === 4 ? '1px solid var(--color-blue)' : '1px solid #f0f0f0'
+                  }} />
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="ws-preview-team-view">
+            <div className="ws-preview-header" style={{ padding: '20px' }}>
+              <div style={{ width: '120px', height: '10px', background: '#eee', borderRadius: '5px' }} />
+            </div>
+            <div className="ws-preview-table" style={{ padding: '0 20px' }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#f0f0f0' }} />
+                  <div style={{ width: '100px', height: '8px', background: '#f9f9f9', borderRadius: '4px', marginTop: '8px' }} />
+                  <div style={{ marginLeft: 'auto', width: '60px', height: '8px', background: '#f9f9f9', borderRadius: '4px', marginTop: '8px' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="ws-preview-highlight" />
+    </div>
   )
 
   return (
     <AuthLayout rightPanel={rightPanel}>
+      {apiError && <Notification message={apiError} type="error" onClose={() => setApiError('')} />}
+      
       <div className="ws-auth-form-wrap">
-        {apiError && <p className="ws-auth-error-text" style={{ textAlign: 'center', marginBottom: 8 }}>{apiError}</p>}
-        <form className="ws-auth-form" onSubmit={handleSubmit} noValidate>
-          <Input name="shopName" placeholder="Shop name" icon={Store}
-            value={form.shopName} onChange={handleChange} error={errors.shopName} />
-          <Input name="gstin" placeholder="GSTIN (e.g. 27ABCDE1234F1Z5)" icon={FileText}
-            value={form.gstin} onChange={handleChange} error={errors.gstin}
-            style={{ textTransform: 'uppercase' }} />
-          <Input name="mobile" type="tel" placeholder="Mobile number (10 digits)" icon={Phone}
-            value={form.mobile} onChange={handleChange} error={errors.mobile} />
-          <Input name="email" type="email" placeholder="Work email address" icon={Mail}
-            value={form.email} onChange={handleChange} error={errors.email} />
-          <Input name="password" type="password" placeholder="Create a password (min 6 chars)" icon={Lock}
-            value={form.password} onChange={handleChange} error={errors.password} />
-          <Input name="confirmPassword" type="password" placeholder="Confirm your password" icon={Lock}
-            value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
-          <button type="submit" className="ws-auth-submit-btn" disabled={isLoading}>
-            {isLoading ? 'Creating account…' : 'Continue'}
-          </button>
-        </form>
-        <div className="ws-auth-switch">
-          Already have an account? <Link to="/login">Log in</Link>
-        </div>
-        <p className="ws-auth-legal">
-          By inserting your details you confirm you agree to Workshop contacting you about our
-          products and services. You can opt out any time. Find out more in our{' '}
-          <a href="#">privacy policy</a>.
-        </p>
+        {step === 1 ? (
+          <>
+            <div className="ws-auth-stepper">1/5</div>
+            <h1 className="ws-auth-step-title">Create your account</h1>
+            <p className="ws-auth-step-subtitle">Start your journey with Workshop today.</p>
+            
+            <form className="ws-auth-form" onSubmit={handleNextStep} noValidate>
+              <Input name="email" type="email" placeholder="Work email address" icon={Mail}
+                value={form.email} onChange={handleChange} error={errors.email} autoFocus />
+              <Input name="password" type="password" placeholder="Create a password (min 6 chars)" icon={Lock}
+                value={form.password} onChange={handleChange} error={errors.password} />
+              <Input name="confirmPassword" type="password" placeholder="Confirm your password" icon={Lock}
+                value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />
+              <button type="submit" className="ws-auth-submit-btn" disabled={isLoading}>
+                {isLoading ? 'Processing...' : 'Continue'}
+              </button>
+              <div className="ws-auth-switch">
+                Already have an account? <Link to="/login">Log in</Link>
+              </div>
+            </form>
+            <p className="ws-auth-legal">
+              By inserting your details you confirm you agree to Workshop contacting you about our
+              products and services. You can opt out any time. Find out more in our{' '}
+              <a href="#">privacy policy</a>.
+            </p>
+          </>
+        ) : step === 2 ? (
+          <form className="ws-auth-form" onSubmit={handleNextStep} noValidate style={{ gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <button type="button" onClick={() => setStep(1)} className="ws-auth-back-btn">
+                <ArrowLeft size={16} />
+              </button>
+              <div className="ws-auth-stepper" style={{ margin: 0 }}>2/5</div>
+            </div>
+
+            <h1 className="ws-auth-step-title" style={{ textAlign: 'left' }}>Verify your email</h1>
+            <p className="ws-auth-step-subtitle" style={{ textAlign: 'left' }}>We've sent a 6-digit code to <strong>{form.email}</strong>. Enter it below to continue.</p>
+
+            <Input name="otp" placeholder="6-digit OTP" 
+              value={form.otp} onChange={e => setForm(prev => ({ ...prev, otp: e.target.value }))} 
+              error={errors.otp} autoFocus maxLength={6} />
+
+            <button type="submit" className="ws-auth-submit-btn" disabled={isLoading} style={{ marginTop: '8px' }}>
+              {isLoading ? 'Verifying...' : 'Verify OTP'}
+            </button>
+            <p className="ws-auth-switch">
+              Didn't receive it? <button type="button" onClick={() => authApi.sendOtp(form.email)} className="ws-text-btn">Resend</button>
+            </p>
+          </form>
+        ) : step === 3 ? (
+          <form className="ws-auth-form" onSubmit={handleNextStep} noValidate style={{ gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <button type="button" onClick={() => setStep(2)} className="ws-auth-back-btn">
+                <ArrowLeft size={16} />
+              </button>
+              <div className="ws-auth-stepper" style={{ margin: 0 }}>3/5</div>
+            </div>
+
+            <h1 className="ws-auth-step-title" style={{ textAlign: 'left' }}>Create your workspace</h1>
+            
+            <div className="ws-logo-upload-section">
+              <div className="ws-logo-preview">
+                {form.companyName ? form.companyName.charAt(0).toUpperCase() : 'W'}
+              </div>
+              <div className="ws-logo-actions">
+                <span className="ws-logo-label">Company logo</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" className="ws-logo-btn">Replace image</button>
+                  <button type="button" className="ws-logo-btn ws-remove">Remove</button>
+                </div>
+                <p className="ws-logo-hint">*.png, *.jpeg files up to 10MB at least 400px by 400px</p>
+              </div>
+            </div>
+
+            <div className="ws-form-field">
+              <label className="ws-field-label">Company name</label>
+              <Input name="companyName" placeholder="Enter your company name..." 
+                value={form.companyName} onChange={handleChange} error={errors.companyName} autoFocus />
+            </div>
+
+            <div className="ws-form-field">
+              <label className="ws-field-label">Workspace handle</label>
+              <div className="ws-handle-input-wrap">
+                <span className="ws-handle-prefix">app.workshop.com/</span>
+                <input className="ws-handle-input" value={form.workspaceHandle} onChange={handleHandleChange} />
+              </div>
+            </div>
+
+            <div className="ws-form-field">
+              <label className="ws-field-label">Billing country</label>
+              <select className="ws-styled-select" name="billingCountry" value={form.billingCountry} onChange={handleChange}>
+                <option value="India">India</option>
+                <option value="United States of America">United States of America</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Canada">Canada</option>
+              </select>
+            </div>
+
+            <div className="ws-form-field">
+              <label className="ws-field-label">How did you hear about us?</label>
+              <textarea className="ws-styled-textarea" name="referralSource" 
+                placeholder="Share how you heard about Workshop..."
+                value={form.referralSource} onChange={handleChange} />
+            </div>
+
+            <button type="submit" className="ws-auth-submit-btn" style={{ marginTop: '8px' }}>
+              Continue
+            </button>
+          </form>
+        ) : step === 4 ? (
+          <form className="ws-auth-form" onSubmit={handleNextStep} noValidate style={{ gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <button type="button" onClick={() => setStep(3)} className="ws-auth-back-btn">
+                <ArrowLeft size={16} />
+              </button>
+              <div className="ws-auth-stepper" style={{ margin: 0 }}>4/5</div>
+            </div>
+
+            <h1 className="ws-auth-step-title" style={{ textAlign: 'left' }}>Help us customize your workspace</h1>
+            <p className="ws-auth-step-subtitle" style={{ textAlign: 'left' }}>Workshop is built to be flexible. What will you be using it for?</p>
+            
+            <div className="ws-custom-chips">
+              {['Sales', 'Inventory', 'Billing', 'Customers', 'Marketing', 'E-commerce', 'Wholesale', 'Other'].map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`ws-chip ${form.usageType === option ? 'ws-active' : ''}`}
+                  onClick={() => setForm(prev => ({ ...prev, usageType: option }))}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            <button type="submit" className="ws-auth-submit-btn" style={{ marginTop: '24px' }}>
+              Continue
+            </button>
+          </form>
+        ) : (
+          <form className="ws-auth-form" onSubmit={handleSubmit} noValidate style={{ gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <button type="button" onClick={() => setStep(4)} className="ws-auth-back-btn">
+                <ArrowLeft size={16} />
+              </button>
+              <div className="ws-auth-stepper" style={{ margin: 0 }}>5/5</div>
+            </div>
+
+            <h1 className="ws-auth-step-title" style={{ textAlign: 'left' }}>Collaborate with your team</h1>
+            <p className="ws-auth-step-subtitle" style={{ textAlign: 'left' }}>The more your teammates use Workshop, the more powerful it becomes.</p>
+
+            <div className="ws-form-field">
+              <label className="ws-field-label">Invite people to collaborate</label>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <Input placeholder="example@email.com" value={form.inviteEmail} onChange={e => setForm(prev => ({ ...prev, inviteEmail: e.target.value }))} style={{ flex: 1 }} />
+                <select className="ws-styled-select" style={{ width: '100px' }}>
+                  <option>Member</option>
+                  <option>Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" className="ws-auth-submit-btn" disabled={isLoading} style={{ marginTop: '8px' }}>
+              {isLoading ? 'Setting up workspace…' : 'Send invites'}
+            </button>
+            <button type="button" onClick={handleSubmit} className="ws-auth-skip-btn">
+              Skip for now
+            </button>
+          </form>
+        )}
       </div>
     </AuthLayout>
   )

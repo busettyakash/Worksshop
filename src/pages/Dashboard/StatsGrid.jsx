@@ -9,7 +9,9 @@ export default function StatsGrid() {
 
   return (
     <div className="ws-stats-grid">
-      {stats.map(s => (
+      {!stats || stats.length === 0 ? (
+        <div className="ws-stats-loading">No stats available</div>
+      ) : stats.map(s => (
         <div className="ws-stat-card" key={s.label}>
           <div className="ws-stat-card-label">{s.label}</div>
           <div className="ws-stat-card-value">{s.value}</div>

@@ -11,6 +11,7 @@ import BuildFastSection from './BuildFastSection'
 import FinalCTASection from './FinalCTASection'
 import LandingFooter from './LandingFooter'
 import './Landing.css'
+import './LandingFixes.css'
 
 export default function Landing() {
   return (
@@ -43,7 +44,7 @@ export default function Landing() {
       {/* ── UNIFIED PLATFORM SHOWCASE ── */}
       <section className="cds-section">
         <div className="cds-inner">
-          
+
           {/* Big headline */}
           <div className="ws-big-headline ws-automate-headline" style={{ marginBottom: '40px', maxWidth: '850px' }}>
             <h2 className="ws-big-headline-title" style={{ fontSize: '1.8rem', lineHeight: '1.3' }}>

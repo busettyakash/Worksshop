@@ -25,4 +25,14 @@ export const authApi = {
   logout: async () => {
     try { await apiClient.post('/auth/logout') } catch (_) {}
   },
+
+  sendOtp: async (email) => {
+    const res = await apiClient.post('/auth/send-otp', { email })
+    return res.data
+  },
+
+  verifyOtp: async (email, otp) => {
+    const res = await apiClient.post('/auth/verify-otp', { email, otp })
+    return res.data
+  },
 }

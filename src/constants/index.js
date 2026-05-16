@@ -50,21 +50,13 @@ export const ONBOARDING_STEPS = [
 
 // Demo data
 export const DEMO_STATS = [
-  { label: "Today's Sales",  value: '₹18,420', change: '+12.4%', up: true  },
-  { label: 'Orders Today',   value: '34',       change: '+6 vs yesterday', up: true  },
-  { label: 'Products',       value: '248',      change: '7 low stock',     up: false },
-  { label: 'Customers',      value: '1,092',    change: '+3 new today',    up: true  },
+  { label: "Today's Sales",  value: '₹0',    change: '0%',   up: true  },
+  { label: 'Orders Today',   value: '0',     change: '0',    up: true  },
+  { label: 'Products',       value: '0',     change: 'No data', up: false },
+  { label: 'Customers',      value: '0',     change: '0 new',   up: true  },
 ]
 
-export const DEMO_PRODUCTS = [
-  { id: 1, name: 'Samsung 65" QLED TV',  category: 'Electronics', status: 'In Stock',    price: '₹84,990', sku: 'SAM-001' },
-  { id: 2, name: 'Apple AirPods Pro',     category: 'Electronics', status: 'Low Stock',   price: '₹24,900', sku: 'APL-002' },
-  { id: 3, name: "Levi's 511 Slim Jeans", category: 'Apparel',     status: 'In Stock',    price: '₹3,999',  sku: 'LEV-003' },
-  { id: 4, name: 'Nescafé Gold 200g',     category: 'Grocery',     status: 'Out of Stock',price: '₹850',    sku: 'NES-004' },
-  { id: 5, name: 'Bosch Mixer Grinder',   category: 'Appliances',  status: 'In Stock',    price: '₹5,499',  sku: 'BSH-005' },
-  { id: 6, name: 'Nike Air Max 270',      category: 'Footwear',    status: 'In Stock',    price: '₹9,995',  sku: 'NIK-006' },
-  { id: 7, name: 'Parle-G Biscuits 1kg',  category: 'Grocery',     status: 'In Stock',    price: '₹60',     sku: 'PAR-007' },
-]
+export const DEMO_PRODUCTS = []
 
 export const DEMO_CUSTOMERS = [
   { id: 1, name: 'Rahul Sharma',    email: 'rahul@example.com', phone: '9876543210', orders: 12, total: '₹34,500', lastOrder: '2d ago' },
