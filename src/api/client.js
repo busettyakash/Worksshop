@@ -1,8 +1,11 @@
-// API client — update VITE_API_URL in .env to point at your backend
+// API client — uses relative /api in production (Vercel proxies to backend)
+// and localhost:5000 in local development
 import axios from 'axios'
 
+const isProd = import.meta.env.PROD  // true on Vercel, false on local dev
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || (isProd ? '/api' : 'http://localhost:5000/api'),
   timeout: 15000,
 })
 
