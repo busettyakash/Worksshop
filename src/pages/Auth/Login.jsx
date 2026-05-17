@@ -16,6 +16,7 @@ export default function Login() {
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const handleEmailContinue = async (e) => {
     e.preventDefault()
@@ -34,8 +35,10 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
     try {
       await authApi.verifyOtp(email, otp)
+      setSuccess('OTP verified successfully!')
       setStep('password')
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid OTP')
@@ -48,6 +51,7 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
 
     try {
       const data = await authApi.login({ email, password })
@@ -58,7 +62,7 @@ export default function Login() {
         email: data.user.email,
         successMessage: 'Welcome back! Login successful.'
       }))
-      navigate('/dashboard')
+      window.location.href = '/dashboard' // Force reload to init Redux with new user
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid password.')
     } finally {
@@ -69,6 +73,7 @@ export default function Login() {
   return (
     <AuthLayout>
       {error && <Notification message={error} type="error" onClose={() => setError('')} />}
+      {success && <Notification message={success} type="success" onClose={() => setSuccess('')} />}
       
       <div className="ws-auth-form-wrap">
         {step === 'otp' ? (
