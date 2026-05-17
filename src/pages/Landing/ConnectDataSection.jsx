@@ -94,7 +94,7 @@ const INTEGRATIONS = [
 
 /* ─── Card icons — all explicit, no fill inheritance ─── */
 const WorkspaceIcon = () => (
-  <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+  <svg width="30" height="30" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
     <rect width="26" height="26" rx="7" fill="#3B82F6" />
     <rect x="6" y="6" width="6" height="6" rx="1.5" fill="#ffffff" />
     <rect x="14" y="6" width="6" height="6" rx="1.5" fill="#ffffff" />
@@ -104,7 +104,7 @@ const WorkspaceIcon = () => (
 );
 
 const CompanyIcon = () => (
-  <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+  <svg width="30" height="30" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
     <rect width="26" height="26" rx="7" fill="#3B82F6" />
     <circle cx="13" cy="9.5" r="3.5" fill="#ffffff" />
     <path d="M5.5 23c0-4.5 3.5-7 7.5-7s7.5 2.5 7.5 7" fill="#ffffff" />

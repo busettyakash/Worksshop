@@ -93,7 +93,7 @@ export default function Sidebar() {
         <div className="ws-sb-header">
           <button className="ws-sb-workspace-btn">
             <div className="ws-sb-ws-icon">
-              <WorkshopLogo size={14} color="#fff" />
+              <WorkshopLogo size={18} color="#fff" />
             </div>
             <span className="ws-sb-ws-name">{shopName}</span>
             <ChevronDown size={13} className="ws-sb-chevron" />

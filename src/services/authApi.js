@@ -8,11 +8,13 @@ export const authApi = {
 
   register: async (data) => {
     const res = await apiClient.post('/auth/register', {
-      shopName:     data.shopName,
-      gstinNumber:  data.gstin,
-      mobileNumber: data.mobile,
-      email:        data.email,
-      password:     data.password,
+      shopName:        data.shopName,
+      email:           data.email,
+      password:        data.password,
+      workspaceHandle: data.workspaceHandle,
+      billingCountry:  data.billingCountry,
+      referralSource:  data.referralSource,
+      usageType:       data.usageType,
     })
     return res.data
   },
@@ -26,8 +28,8 @@ export const authApi = {
     try { await apiClient.post('/auth/logout') } catch (_) {}
   },
 
-  sendOtp: async (email) => {
-    const res = await apiClient.post('/auth/send-otp', { email })
+  sendOtp: async (email, type = 'signup') => {
+    const res = await apiClient.post('/auth/send-otp', { email, type })
     return res.data
   },
 

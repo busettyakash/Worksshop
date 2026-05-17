@@ -23,11 +23,25 @@ export default function Login() {
     if (!email) return
     setStep('checking')
     try {
-      await authApi.sendOtp(email)
+      await authApi.sendOtp(email, 'login')
       setStep('otp')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP')
       setStep('email')
+    }
+  }
+
+  const handleResendOtp = async () => {
+    setLoading(true)
+    setError('')
+    setSuccess('')
+    try {
+      await authApi.sendOtp(email, 'login')
+      setSuccess('OTP has been resent successfully!')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -106,18 +120,17 @@ export default function Login() {
                   <button 
                     type="button" 
                     className="ws-text-btn" 
-                    onClick={handleEmailContinue}
+                    onClick={handleResendOtp}
                     disabled={loading}
                     style={{ 
                       background: 'none', 
                       border: 'none', 
                       color: 'var(--color-blue)', 
                       fontWeight: 600, 
-                      cursor: 'pointer',
-                      padding: 0
+                      cursor: loading ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    Resend OTP
+                    Resend
                   </button>
                 </p>
               </div>

@@ -72,9 +72,9 @@
 }
 
 .ws-sb-ws-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   background: var(--color-black);
   display: flex;
   align-items: center;

@@ -12,10 +12,18 @@ const router = Router()
 
 /* POST /api/auth/send-otp */
 router.post('/send-otp', async (req, res) => {
-  const { email } = req.body
+  let { email, type } = req.body
   if (!email) return res.status(400).json({ message: 'Email is required' })
+  email = email.toLowerCase().trim()
 
   try {
+    if (type === 'login') {
+      const profile = await query('SELECT 1 FROM shop_profiles WHERE email = $1', [email])
+      if (profile.rows.length === 0) {
+        return res.status(404).json({ message: 'Account not found. Please sign up first.' })
+      }
+    }
+
     console.log(`[OTP] Request for email: ${email}`)
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
     try {
@@ -56,8 +64,9 @@ router.post('/send-otp', async (req, res) => {
 
 /* POST /api/auth/verify-otp */
 router.post('/verify-otp', async (req, res) => {
-  const { email, otp } = req.body
+  let { email, otp } = req.body
   if (!email || !otp) return res.status(400).json({ message: 'Email and OTP are required' })
+  email = email.toLowerCase().trim()
 
   try {
     let storedOtp = await redis.get(`otp:${email}`).catch(() => null)
@@ -87,7 +96,10 @@ router.post('/verify-otp', async (req, res) => {
 
 /* POST /api/auth/register */
 router.post('/register', async (req, res) => {
-  const { email, password, shopName, phone, mobileNumber } = req.body
+  const { 
+    email, password, shopName, phone, mobileNumber,
+    workspaceHandle, billingCountry, referralSource, usageType
+  } = req.body
   const actualPhone = phone || mobileNumber
   if (!email || !password || !shopName) {
     return res.status(400).json({ message: 'email, password and shopName are required' })
@@ -102,10 +114,17 @@ router.post('/register', async (req, res) => {
 
     // Store extra profile in DB (now keyed by email since user ID isn't returned on unverified signups)
     await query(
-      `INSERT INTO shop_profiles (email, shop_name, phone, created_at)
-       VALUES ($1, $2, $3, NOW())
-       ON CONFLICT (email) DO UPDATE SET shop_name = EXCLUDED.shop_name, phone = EXCLUDED.phone`,
-      [email, shopName, actualPhone || null]
+      `INSERT INTO shop_profiles (
+         email, shop_name, phone, workspace_handle, billing_country, referral_source, usage_type, created_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       ON CONFLICT (email) DO UPDATE SET 
+         shop_name = EXCLUDED.shop_name, 
+         phone = EXCLUDED.phone,
+         workspace_handle = EXCLUDED.workspace_handle,
+         billing_country = EXCLUDED.billing_country,
+         referral_source = EXCLUDED.referral_source,
+         usage_type = EXCLUDED.usage_type`,
+      [email, shopName, actualPhone || null, workspaceHandle, billingCountry, referralSource, usageType]
     ).catch((err) => { console.error('DB Insert Error', err) })
 
     res.status(201).json({
@@ -143,14 +162,21 @@ router.post('/login', async (req, res) => {
     const profile = await query(
       'SELECT shop_name, phone FROM shop_profiles WHERE email = $1',
       [email]
-    ).catch(() => ({ rows: [] }))
+    ).catch((err) => {
+      console.error('[DB] Profile fetch error:', err.message)
+      return { rows: [] }
+    })
+
+    if (profile.rows.length === 0) {
+      return res.status(401).json({ message: 'User profile not found. Please sign up first.' })
+    }
 
     res.json({
       token: token,
       user: {
         id:       userId,
         email:    email,
-        shopName: profile.rows[0]?.shop_name || email.split('@')[0],
+        shopName: profile.rows[0].shop_name,
       },
     })
   } catch (err) {

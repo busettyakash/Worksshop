@@ -25,6 +25,7 @@ export default function Signup() {
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   useEffect(() => {
     if (!form.workspaceHandleManual && form.companyName) {
@@ -41,6 +42,20 @@ export default function Signup() {
 
   const handleHandleChange = (e) => {
     setForm(prev => ({ ...prev, workspaceHandle: e.target.value, workspaceHandleManual: true }))
+  }
+
+  const handleResendOtp = async () => {
+    setIsLoading(true)
+    setApiError('')
+    setSuccessMsg('')
+    try {
+      await authApi.sendOtp(form.email)
+      setSuccessMsg('OTP has been resent successfully!')
+    } catch (err) {
+      setApiError(err.response?.data?.message || 'Failed to resend OTP. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleNextStep = async (e) => {
@@ -176,6 +191,7 @@ export default function Signup() {
   return (
     <AuthLayout rightPanel={rightPanel}>
       {apiError && <Notification message={apiError} type="error" onClose={() => setApiError('')} />}
+      {successMsg && <Notification message={successMsg} type="success" onClose={() => setSuccessMsg('')} />}
       
       <div className="ws-auth-form-wrap">
         {step === 1 ? (
@@ -224,7 +240,7 @@ export default function Signup() {
               {isLoading ? 'Verifying...' : 'Verify OTP'}
             </button>
             <p className="ws-auth-switch">
-              Didn't receive it? <button type="button" onClick={() => authApi.sendOtp(form.email)} className="ws-text-btn">Resend</button>
+              Didn't receive it? <button type="button" onClick={handleResendOtp} disabled={isLoading} className="ws-text-btn">Resend</button>
             </p>
           </form>
         ) : step === 3 ? (
