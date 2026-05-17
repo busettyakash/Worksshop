@@ -64,9 +64,12 @@ app.use((err, _req, res, _next) => {
   res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
 })
 
-app.listen(PORT, () => {
-  console.log(`✅ Workshop Backend running on http://localhost:${PORT}`)
-  console.log(`   InsForge: ${process.env.INSFORGE_API_BASE_URL}`)
-})
+// Only listen in local dev — Vercel handles routing in production
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`✅ Workshop Backend running on http://localhost:${PORT}`)
+    console.log(`   InsForge: ${process.env.INSFORGE_API_BASE_URL}`)
+  })
+}
 
 export default app
